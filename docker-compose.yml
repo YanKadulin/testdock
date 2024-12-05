@@ -1,0 +1,6 @@
+services:
+  text-recognition:
+    image: docker.registry.groupstp.ru/groupstp/$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG
+    restart: always
+    ports:
+      - "5000:5000"

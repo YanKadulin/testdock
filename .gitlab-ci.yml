@@ -1,0 +1,43 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  DOCKER_IMAGE_TAG: $CI_COMMIT_BRANCH
+  DOCKER_IMAGE_NAME: text-recognition
+
+before_script:
+  # Логинимся в Docker Registry
+  - echo "$DOCKER_REGISTRY_PASSWORD" | docker login "$DOCKER_REPO_URL" -u "$DOCKER_REGISTRY_USER" --password-stdin || echo "Login failed"
+
+.docker_build_template:
+  tags:
+    - shared
+    - shell
+  script:
+    - docker build -t docker.registry.groupstp.ru/groupstp/$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG . -f $DOCKERFILE_PATH
+    - docker push docker.registry.groupstp.ru/groupstp/$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG
+    - docker rmi docker.registry.groupstp.ru/groupstp/$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG
+
+.rule_template:
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+
+build:
+  extends: 
+    - .docker_build_template
+    - .rule_template
+  stage: build
+  variables:
+    DOCKER_CONTEXT_DIRECTORY: './'
+    DOCKERFILE_PATH: Dockerfile
+
+deploy:
+ stage: deploy
+ script:
+   - docker compose up -d --pull always
+   - docker system prune -f
+ rules:
+   - if: $CI_COMMIT_BRANCH == "master"
+ tags: 
+ - text-recognition-test

@@ -1,0 +1,7 @@
+Dockerfile
+README.md
+.gitignore
+.gitlab-ci.yml
+docker-compose.yml
+example_document.pdf
+.dockerignore
